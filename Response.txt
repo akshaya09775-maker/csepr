@@ -1,0 +1,175 @@
+================================================
+           RESPONSE ENTITY IN SPRING BOOT
+================================================
+
+What is ResponseEntity?
+
+ResponseEntity is a CLASS in Spring Boot.
+
+It is used to control the HTTP response sent
+from the backend to the client.
+
+Think of it as a BOX containing:
+
+        ┌─────────────────────────┐
+        │     HTTP RESPONSE       │
+        │                         │
+        │  Status Code            │
+        │  Headers                │
+        │  Body                   │
+        └─────────────────────────┘
+
+
+================================================
+IS ResponseEntity A CLASS OR INTERFACE?
+================================================
+
+ResponseEntity → CLASS
+
+Package:
+
+    org.springframework.http.ResponseEntity
+
+
+================================================
+WHAT DOES IT CONTROL?
+================================================
+
+ResponseEntity mainly controls 3 things:
+
+        1. Status Code
+        2. Headers
+        3. Body
+
+
+Example:
+
+    return ResponseEntity.ok("Hello");
+
+
+Response:
+
+    Status → 200 OK
+
+    Body:
+    "Hello"
+
+
+================================================
+SIMPLE EXAMPLE
+================================================
+
+    @GetMapping("/hello")
+    public ResponseEntity<String> hello() {
+
+        return ResponseEntity.ok("Hello Vikram");
+    }
+
+
+Client receives:
+
+    ┌─────────────────────────┐
+    │ Status: 200 OK          │
+    │                         │
+    │ Body: Hello Vikram      │
+    └─────────────────────────┘
+
+
+================================================
+COMMON STATUS CODES
+================================================
+
+    200 OK
+       ↓
+    Request successful
+
+
+    201 CREATED
+       ↓
+    New data created
+
+
+    400 BAD REQUEST
+       ↓
+    Client sent wrong data
+
+
+    404 NOT FOUND
+       ↓
+    Data doesn't exist
+
+
+    500 INTERNAL SERVER ERROR
+       ↓
+    Server error
+
+
+================================================
+EXAMPLES
+================================================
+
+200 OK:
+
+    return ResponseEntity.ok(student);
+
+
+201 CREATED:
+
+    return ResponseEntity
+            .status(201)
+            .body(student);
+
+
+404 NOT FOUND:
+
+    return ResponseEntity
+            .notFound()
+            .build();
+
+
+================================================
+OPTIONAL vs RESPONSEENTITY
+================================================
+
+Optional:
+
+    "Does the value exist?"
+
+        Optional<Student>
+              │
+        ┌─────┴─────┐
+        ↓           ↓
+     Student      EMPTY
+
+
+ResponseEntity:
+
+    "What response should I send?"
+
+        ResponseEntity<Student>
+                  │
+        ┌─────────┼─────────┐
+        ↓         ↓         ↓
+      Status    Headers    Body
+       200       ...      Student
+
+
+================================================
+REMEMBER
+================================================
+
+Optional
+    ↓
+Handles a value that may or may not exist.
+
+ResponseEntity
+    ↓
+Controls the HTTP response sent to the client.
+
+
+⭐ ONE LINE:
+
+ResponseEntity is a CLASS in Spring Boot used to
+control the HTTP status, headers, and body of a
+response.
+================================================
