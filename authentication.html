@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Normal auth vs JWT auth — glass flow</title>
+<style>
+  :root{
+    color-scheme: light;
+    --green:#22a06b; --green-glow: rgba(34,160,107,0.55);
+    --blue:#2f7bdb; --blue-glow: rgba(47,123,219,0.55);
+    --amber:#d99a1f; --amber-glow: rgba(217,154,31,0.55);
+    --purple:#7c5cd4; --purple-glow: rgba(124,92,212,0.5);
+
+    --green-ink:#0d3a26; --blue-ink:#0d2b4e; --amber-ink:#4a3608; --purple-ink:#4c3696;
+    --sub:#5b6b7a; --page-text:#0d2b4e;
+
+    --bg-a:#dcf7ea; --bg-b:#dceafc; --bg-c:#fff2d6;
+    --bg-d1:#f6faf9; --bg-d2:#eef4fb; --bg-d3:#fbf6ea;
+    --orb-opacity:0.4;
+
+    --glass-border: rgba(255,255,255,0.5);
+    --glass-border-strong: rgba(255,255,255,0.6);
+    --glass-neutral: rgba(255,255,255,0.45);
+    --glass-neutral-strong: rgba(255,255,255,0.55);
+    --glass-neutral-soft: rgba(255,255,255,0.4);
+    --glass-tab: rgba(255,255,255,0.35);
+
+    --glass-green: rgba(226,250,238,0.5);
+    --glass-green-soft: rgba(226,250,238,0.45);
+    --glass-blue: rgba(230,241,255,0.35);
+    --glass-blue-soft: rgba(230,241,255,0.45);
+    --glass-amber-1: rgba(255,246,222,.7);
+    --glass-amber-2: rgba(255,229,168,.5);
+
+    --border-green-soft: rgba(34,160,107,.35);
+    --border-blue-soft: rgba(47,123,219,.35);
+    --border-amber-soft: rgba(217,154,31,0.35);
+    --border-amber-soft-2: rgba(217,154,31,0.3);
+    --border-purple-soft: rgba(124,92,212,0.3);
+
+    --pill-bg: rgba(255,255,255,0.6);
+    --pill-border: rgba(0,0,0,0.06);
+
+    --input-bg: rgba(255,255,255,0.6);
+    --input-border: rgba(47,123,219,0.3);
+
+    --response-bg: rgba(255,255,255,0.55);
+    --response-border: rgba(47,123,219,0.2);
+    --response-err: #a8341f;
+    --response-err-border: rgba(224,60,60,0.4);
+
+    --db-inner-bg: rgba(255,255,255,0.5);
+    --user-row-bg: rgba(255,255,255,0.6);
+    --kv-border: rgba(13,58,38,0.15);
+
+    --card-shine: rgba(255,255,255,0.6);
+    --toggle-bg: rgba(255,255,255,0.55);
+    --toggle-border: rgba(255,255,255,0.65);
+    --toggle-icon:#0d2b4e;
+    --toggle-shadow: 0 6px 18px rgba(13,43,78,0.12);
+  }
+
+  html[data-theme="dark"]{
+    color-scheme: dark;
+    --green-ink:#8de8bf; --blue-ink:#9cc7f7; --amber-ink:#f0c667; --purple-ink:#c9b8f2;
+    --sub:#93a2b3; --page-text:#e9eef5;
+
+    --bg-a: rgba(34,160,107,0.18); --bg-b: rgba(47,123,219,0.16); --bg-c: rgba(217,154,31,0.14);
+    --bg-d1:#0a0e13; --bg-d2:#0c111a; --bg-d3:#100d0a;
+    --orb-opacity:0.28;
+
+    --glass-border: rgba(255,255,255,0.1);
+    --glass-border-strong: rgba(255,255,255,0.14);
+    --glass-neutral: rgba(32,38,48,0.55);
+    --glass-neutral-strong: rgba(36,42,54,0.62);
+    --glass-neutral-soft: rgba(30,36,46,0.5);
+    --glass-tab: rgba(255,255,255,0.06);
+
+    --glass-green: rgba(34,160,107,0.14);
+    --glass-green-soft: rgba(34,160,107,0.1);
+    --glass-blue: rgba(47,123,219,0.14);
+    --glass-blue-soft: rgba(47,123,219,0.1);
+    --glass-amber-1: rgba(217,154,31,0.18);
+    --glass-amber-2: rgba(217,154,31,0.1);
+
+    --border-green-soft: rgba(34,160,107,.4);
+    --border-blue-soft: rgba(47,123,219,.4);
+    --border-amber-soft: rgba(217,154,31,0.4);
+    --border-amber-soft-2: rgba(217,154,31,0.35);
+    --border-purple-soft: rgba(124,92,212,0.4);
+
+    --pill-bg: rgba(255,255,255,0.06);
+    --pill-border: rgba(255,255,255,0.12);
+
+    --input-bg: rgba(255,255,255,0.05);
+    --input-border: rgba(143,193,247,0.35);
+
+    --response-bg: rgba(255,255,255,0.05);
+    --response-border: rgba(143,193,247,0.25);
+    --response-err: #ff9686;
+    --response-err-border: rgba(255,120,100,0.4);
+
+    --db-inner-bg: rgba(255,255,255,0.04);
+    --user-row-bg: rgba(255,255,255,0.06);
+    --kv-border: rgba(141,232,191,0.18);
+
+    --card-shine: rgba(255,255,255,0.12);
+    --toggle-bg: rgba(255,255,255,0.08);
+    --toggle-border: rgba(255,255,255,0.18);
+    --toggle-icon:#e9eef5;
+    --toggle-shadow: 0 6px 18px rgba(0,0,0,0.35);
+  }
+
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; min-height:100vh; padding:50px 20px 90px;
+    display:flex; flex-direction:column; align-items:center;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:
+      radial-gradient(circle at 8% 15%, var(--bg-a) 0%, transparent 40%),
+      radial-gradient(circle at 50% 10%, var(--bg-b) 0%, transparent 45%),
+      radial-gradient(circle at 92% 20%, var(--bg-c) 0%, transparent 42%),
+      linear-gradient(160deg, var(--bg-d1) 0%, var(--bg-d2) 55%, var(--bg-d3) 100%);
+    background-size:200% 200%;
+    animation: bgshift 16s ease-in-out infinite;
+    position:relative; overflow-x:auto;
+    color: var(--page-text);
+    transition: background-color .45s ease, color .45s ease;
+  }
+  @keyframes bgshift{ 0%,100%{background-position:0% 0%;} 50%{background-position:100% 100%;} }
+
+  .orb{ position:fixed; border-radius:50%; filter:blur(50px); opacity:var(--orb-opacity); animation: float 8s ease-in-out infinite; transition:opacity .45s ease; z-index:0; }
+  .orb.g{ width:240px; height:240px; top:-60px; left:-60px; background:radial-gradient(circle,#7fe0b8,transparent 70%); }
+  .orb.b{ width:220px; height:220px; top:-40px; left:42%; background:radial-gradient(circle,#7fb3f2,transparent 70%); animation-delay:2s; }
+  .orb.a{ width:240px; height:240px; top:-60px; right:-60px; background:radial-gradient(circle,#f2cf7f,transparent 70%); animation-delay:4s; }
+  @keyframes float{ 0%,100%{transform:translateY(0) scale(1);} 50%{transform:translateY(24px) scale(1.08);} }
+
+  h1{ position:relative; z-index:1; font-size:26px; font-weight:600; color:var(--page-text); margin:0 0 6px; opacity:0; animation:dropIn .7s .1s ease forwards; }
+  p.tag{ position:relative; z-index:1; color:var(--sub); font-size:14px; margin:0 0 22px; opacity:0; animation:dropIn .7s .25s ease forwards; }
+  @keyframes dropIn{ from{opacity:0; transform:translateY(-14px);} to{opacity:1; transform:translateY(0);} }
+
+  .tabs{ position:relative; z-index:1; display:flex; gap:8px; margin-bottom:26px; opacity:0; animation:dropIn .7s .3s ease forwards; }
+  .tab{
+    padding:9px 20px; font-size:13px; font-weight:600; border-radius:20px; cursor:pointer;
+    border:1.5px solid var(--glass-border); background:var(--glass-tab); backdrop-filter:blur(10px);
+    color:var(--sub); transition:all .25s ease;
+  }
+  .tab:hover{ transform:translateY(-1px); }
+  .tab:focus-visible, .theme-toggle:focus-visible, .card:focus-visible, button.send:focus-visible, .form-panel input:focus-visible{
+    outline:2px solid var(--blue); outline-offset:2px;
+  }
+  .tab.active.jwt{ background:linear-gradient(135deg, var(--blue), #4d94e8); color:#fff; border-color:transparent; box-shadow:0 4px 16px var(--blue-glow); }
+  .tab.active.normal{ background:linear-gradient(135deg, var(--purple), #9b7fe8); color:#fff; border-color:transparent; box-shadow:0 4px 16px var(--purple-glow); }
+
+  .stage{ position:relative; z-index:1; width:1320px; max-width:none; height:540px; display:none; }
+  .stage.visible{ display:block; }
+
+  svg.wires{ position:absolute; inset:0; overflow:visible; pointer-events:none; }
+  .wire{ fill:none; stroke-width:2.5; stroke-linecap:round; opacity:0.4; }
+  .wire.g{ stroke:var(--green); }
+  .wire.a{ stroke:var(--amber); }
+  .wire.b{ stroke:var(--blue); }
+  .wire.active{ opacity:0.95; }
+
+  .glass{
+    position:absolute; border-radius:22px; backdrop-filter:blur(18px) saturate(150%); -webkit-backdrop-filter:blur(18px) saturate(150%);
+    border:1.5px solid var(--glass-border); opacity:0; transform:scale(.96);
+    animation:riseIn .7s cubic-bezier(.2,.9,.25,1) forwards;
+    transition:box-shadow .4s ease, border-color .4s ease, background-color .45s ease;
+  }
+  @keyframes riseIn{ to{opacity:1; transform:scale(1);} }
+
+  /* ---------- client cluster ---------- */
+  .client-label{ position:absolute; left:14px; top:0px; width:382px; text-align:center; font-size:20px; font-weight:600; color:var(--green-ink); z-index:2; opacity:0; animation:dropIn .7s .2s ease forwards; transition:color .45s ease; }
+  .client-sub{ position:absolute; left:14px; top:24px; width:382px; text-align:center; font-size:11px; color:var(--sub); z-index:2; opacity:0; animation:dropIn .7s .3s ease forwards; }
+
+  .client-outer{
+    left:14px; top:48px; width:382px; height:184px; padding:14px;
+    background:var(--glass-green); box-shadow:0 8px 26px var(--green-glow), inset 0 1px 0 var(--card-shine);
+    display:flex; flex-direction:column; gap:10px; cursor:pointer; animation-delay:.25s;
+  }
+  .client-outer.selected{
+    border-color:rgba(34,160,107,.9);
+    animation-name: riseIn, pulseG; animation-duration:.7s,1.6s;
+    animation-timing-function: cubic-bezier(.2,.9,.25,1), ease-in-out;
+    animation-delay:.25s,0s; animation-iteration-count:1,infinite; animation-fill-mode:forwards,none;
+  }
+  @keyframes pulseG{ 0%,100%{box-shadow:0 8px 22px var(--green-glow);} 50%{box-shadow:0 8px 42px var(--green-glow);} }
+
+  .client-head{ display:flex; align-items:center; gap:10px; }
+  .avatar{ width:32px; height:32px; flex:none; border-radius:50%; background:linear-gradient(135deg,#3fcf9c,#1d8a5f); box-shadow:0 4px 12px var(--green-glow); }
+  .client-head b{ color:var(--green-ink); font-size:14px; display:block; }
+  .client-head span{ color:var(--sub); font-size:10px; }
+
+  .breakout-row{ display:flex; gap:12px; flex:1; }
+  .subcard{
+    flex:1; border-radius:13px; padding:10px 11px; display:flex; flex-direction:column; gap:6px;
+    background:var(--glass-neutral-soft); border:1.5px solid var(--glass-border-strong);
+    transition:background-color .45s ease, border-color .45s ease;
+  }
+  .subcard.storages{ border-color:var(--border-green-soft); }
+  .subcard.network{ border-color:var(--border-blue-soft); }
+  .subcard-title{ font-size:10.5px; font-weight:700; display:flex; align-items:center; gap:5px; }
+  .subcard.storages .subcard-title{ color:var(--green-ink); }
+  .subcard.network .subcard-title{ color:var(--blue-ink); }
+  .subcard-dot{ width:6px; height:6px; border-radius:50%; }
+  .subcard.storages .subcard-dot{ background:var(--green); box-shadow:0 0 6px var(--green-glow); }
+  .subcard.network .subcard-dot{ background:var(--blue); box-shadow:0 0 6px var(--blue-glow); }
+  .pill-row{ display:flex; flex-wrap:wrap; gap:4px; }
+  .pill-mini{
+    font-size:8.5px; font-weight:600; padding:2.5px 7px; border-radius:10px;
+    background:var(--pill-bg); color:var(--sub); border:1px solid var(--pill-border);
+    transition:background-color .45s ease, border-color .45s ease, color .3s ease;
+  }
+  .subcard.storages .pill-mini.hit{ background:rgba(34,160,107,0.22); color:var(--green-ink); border-color:var(--border-green-soft); }
+  .subcard.network .pill-mini.hit{ background:rgba(47,123,219,0.22); color:var(--blue-ink); border-color:var(--border-blue-soft); }
+
+  /* local storage + payload detail boxes */
+  .lstorage-panel{ left:6px; top:250px; width:232px; height:172px; padding:12px 14px; animation-delay:.35s;
+    background:var(--glass-green-soft); box-shadow:0 6px 20px var(--green-glow); display:flex; flex-direction:column; }
+  .payload-panel{ left:252px; top:250px; width:164px; height:172px; padding:12px 14px; animation-delay:.4s;
+    background:var(--glass-blue-soft); box-shadow:0 6px 20px var(--blue-glow); display:flex; flex-direction:column; }
+  .panel-title{ font-size:10.5px; font-weight:700; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+  .lstorage-panel .panel-title{ color:var(--green-ink); }
+  .payload-panel .panel-title{ color:var(--blue-ink); }
+
+  .kv-head{ display:grid; grid-template-columns:1fr 1fr; font-size:9px; font-weight:700; color:var(--sub); border-bottom:1px solid var(--kv-border); padding-bottom:5px; margin-bottom:6px; }
+  .kv-body{ display:flex; flex-direction:column; gap:5px; overflow-y:auto; }
+  .kv-row{ display:grid; grid-template-columns:1fr 1fr; gap:6px; font-family:"SF Mono",Consolas,monospace; font-size:9px; color:var(--green-ink);
+    opacity:0; transform:translateY(6px); animation:rowIn .4s ease forwards; }
+  .kv-row .k{ font-weight:700; }
+  .kv-row .v{ word-break:break-all; }
+  .kv-empty{ font-size:9.5px; color:var(--sub); font-style:italic; line-height:1.5; }
+
+  .method-tag{ font-family:"SF Mono",Consolas,monospace; font-size:9.5px; font-weight:700; color:var(--blue-ink); margin-bottom:6px; opacity:.85; }
+  .payload-body{ font-family:"SF Mono",Consolas,monospace; font-size:9.5px; line-height:1.55; color:var(--blue-ink); white-space:pre-wrap; overflow-y:auto; flex:1; }
+  .payload-body .idle{ font-size:9.5px; color:var(--sub); font-style:italic; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
+
+  .step-badge{
+    position:absolute; top:-8px; left:-8px; width:18px; height:18px; border-radius:50%;
+    background:linear-gradient(135deg, var(--blue), #4d94e8); color:#fff; font-size:10px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px var(--blue-glow); z-index:3;
+  }
+
+  .backend-label{ position:absolute; left:580px; top:0px; width:220px; text-align:center; font-size:20px; font-weight:600; color:var(--blue-ink); z-index:2; opacity:0; animation:dropIn .7s .3s ease forwards; }
+  .backend-outer{
+    left:580px; top:38px; width:220px; height:432px;
+    background:var(--glass-blue); box-shadow:0 8px 30px var(--blue-glow), inset 0 1px 0 var(--card-shine); animation-delay:.4s;
+  }
+
+  .card{
+    position:absolute; left:602px; width:176px; height:80px; border-radius:16px;
+    background:var(--glass-neutral); border:1.5px solid var(--glass-border-strong);
+    backdrop-filter:blur(10px); cursor:pointer; transition:box-shadow .3s ease, border-color .3s ease, transform .2s ease, background-color .45s ease;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:6px;
+    opacity:0; transform:scale(.96); animation:riseIn .6s cubic-bezier(.2,.9,.25,1) forwards;
+  }
+  .card:hover{ transform:translateY(-2px); box-shadow:0 6px 16px rgba(0,0,0,0.08); }
+  .card.selected{ border-color:rgba(47,123,219,.85); box-shadow:0 6px 20px var(--blue-glow); }
+  .card.active-glow{
+    animation-name: riseIn, pulseB; animation-duration:.6s,1.4s;
+    animation-timing-function: cubic-bezier(.2,.9,.25,1), ease-in-out;
+    animation-delay:0s,0s; animation-iteration-count:1,infinite; animation-fill-mode:forwards,none;
+  }
+  @keyframes pulseB{ 0%,100%{box-shadow:0 6px 18px var(--blue-glow);} 50%{box-shadow:0 6px 34px var(--blue-glow);} }
+  .register{ top:80px; animation-delay:.55s; }
+  .login{ top:210px; animation-delay:.68s; }
+  .secure{ top:330px; animation-delay:.8s; }
+
+  .row-top{ display:flex; align-items:center; gap:6px; margin-bottom:3px; }
+  .method{ font-size:9.5px; font-weight:700; letter-spacing:.4px; padding:2px 7px; border-radius:6px; color:#fff; }
+  .method.get{ background:var(--green); box-shadow:0 0 6px var(--green-glow); }
+  .method.post{ background:var(--blue); box-shadow:0 0 6px var(--blue-glow); }
+  .path{ font-family:"SF Mono",Consolas,monospace; font-size:12px; color:var(--blue-ink); font-weight:600; }
+  .desc{ font-size:9.5px; color:var(--sub); margin:0; }
+
+  .form-panel{
+    position:absolute; left:800px; width:230px; border-radius:18px;
+    background:var(--glass-neutral-strong); border:1.5px solid var(--glass-border-strong); backdrop-filter:blur(14px);
+    padding:14px 16px; max-height:0; overflow:hidden; opacity:0;
+    transition:max-height .4s ease, opacity .35s ease, padding .4s ease, box-shadow .3s ease, background-color .45s ease;
+  }
+  #j-register-form, #n-register-form{ top:74px; }
+  #j-login-form, #n-login-form{ top:204px; }
+  #j-secure-form, #n-secure-form{ top:324px; }
+  .backend-outer, .db-outer{ pointer-events:none; }
+  .form-panel{ pointer-events:none; }
+  .form-panel.open{ max-height:340px; opacity:1; padding:14px 16px; box-shadow:0 8px 24px var(--blue-glow); pointer-events:auto;  margin-top:300px;}
+  .form-panel input{
+    width:100%; padding:8px 10px; margin-bottom:8px; font-size:12px; border-radius:10px; border:1px solid var(--input-border);
+    background:var(--input-bg); color:var(--blue-ink); outline:none;
+    transition:background-color .45s ease, border-color .25s ease, box-shadow .2s ease;
+  }
+  .form-panel input::placeholder{ color:var(--sub); opacity:.75; }
+  .form-panel input:focus{ border-color:var(--blue); box-shadow:0 0 0 3px rgba(47,123,219,0.15); }
+  .form-panel input:disabled{ opacity:.5; }
+  button.send{
+    position:relative; overflow:hidden; width:100%; padding:9px 14px; font-size:12px; font-weight:600;
+    border:none; border-radius:10px; color:#fff; cursor:pointer; margin-top:2px;
+    background:linear-gradient(135deg, var(--blue), #4d94e8); box-shadow:0 4px 12px var(--blue-glow);
+    transition:transform .15s ease, box-shadow .2s ease, opacity .2s ease;
+  }
+  button.send:hover{ transform:translateY(-2px); }
+  button.send:disabled{ opacity:.4; cursor:not-allowed; transform:none; box-shadow:none; }
+  button.send.get-btn{ background:linear-gradient(135deg, var(--green), #3fcf9c); box-shadow:0 4px 12px var(--green-glow); }
+  .shine{ position:absolute; top:0; left:-60%; width:40%; height:100%; background:linear-gradient(120deg,transparent,rgba(255,255,255,.6),transparent); transform:skewX(-20deg); }
+  button.send.sending .shine{ animation:sweep .9s linear infinite; }
+  @keyframes sweep{ from{left:-60%;} to{left:140%;} }
+  .lock-note{ font-size:10.5px; color:var(--sub); margin-bottom:8px; }
+  .response{
+    margin-top:9px; padding:8px 10px; border-radius:10px; font-family:"SF Mono",Consolas,monospace; font-size:10.5px; line-height:1.5;
+    background:var(--response-bg); border:1px solid var(--response-border); color:var(--blue-ink); white-space:pre-wrap;
+    max-height:0; overflow:hidden; opacity:0; transition:max-height .4s ease, opacity .4s ease, background-color .45s ease;
+  }
+  .response.show{ max-height:160px; opacity:1; padding-top:8px; padding-bottom:8px; }
+  .response.err{ border-color:var(--response-err-border); color:var(--response-err); }
+  .badge-token{ display:inline-block; margin-top:6px; padding:3px 8px; border-radius:16px; background:rgba(34,160,107,0.18); color:var(--green-ink); font-size:9.5px; font-weight:600; border:1px solid var(--border-green-soft); opacity:0; transform:scale(.9); transition:opacity .3s ease, transform .3s ease; }
+  .badge-token.show{ opacity:1; transform:scale(1); }
+  @keyframes shake{ 0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);} }
+  .shake{ animation:shake .35s ease; }
+
+  .db-label{ position:absolute; left:1040px; top:96px; width:250px; text-align:center; font-size:16px; font-weight:600; color:var(--amber-ink); z-index:2; opacity:0; animation:dropIn .7s .5s ease forwards; }
+  .db-outer{
+    left:1040px; top:138px; width:250px; height:236px; border-radius:26px;
+    background:linear-gradient(160deg, var(--glass-amber-1), var(--glass-amber-2)); box-shadow:0 8px 30px var(--amber-glow), inset 0 1px 0 var(--card-shine); animation-delay:.65s;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .db-inner{
+    width:200px; min-height:150px; max-height:200px; border-radius:16px; background:var(--db-inner-bg); border:1.5px solid var(--border-amber-soft);
+    padding:12px; display:flex; flex-direction:column; gap:7px; overflow-y:auto;
+  }
+  .db-title{ font-size:12.5px; font-weight:700; color:var(--amber-ink); margin-bottom:2px; }
+  .user-row{
+    background:var(--user-row-bg); border:1px solid var(--border-amber-soft-2); border-radius:10px; padding:7px 9px;
+    font-size:10px; color:var(--amber-ink); opacity:0; transform:translateX(12px) scale(.95); animation:rowIn .5s ease forwards;
+  }
+  @keyframes rowIn{ to{opacity:1; transform:translateX(0) scale(1);} }
+  .user-row .field{ display:block; }
+  .empty-note{ font-size:10.5px; color:var(--sub); font-style:italic; }
+
+  .session-pill{
+    display:inline-block; margin-bottom:8px; padding:3px 9px; border-radius:16px; background:rgba(124,92,212,0.18);
+    color:var(--purple-ink); font-size:9.5px; font-weight:600; border:1px solid var(--border-purple-soft); opacity:0; transform:scale(.9);
+    transition:opacity .3s ease, transform .3s ease;
+  }
+  .session-pill.show{ opacity:1; transform:scale(1); }
+
+  /* ---------- theme toggle ---------- */
+  .theme-toggle{
+    position:fixed; top:20px; right:24px; z-index:20;
+    display:flex; align-items:center; gap:8px;
+    padding:6px; border-radius:22px; cursor:pointer;
+    background:var(--toggle-bg); border:1.5px solid var(--toggle-border);
+    backdrop-filter:blur(14px); box-shadow:var(--toggle-shadow);
+    transition:background-color .45s ease, border-color .45s ease, box-shadow .3s ease, transform .15s ease;
+  }
+  .theme-toggle:hover{ transform:translateY(-1px); }
+  .theme-toggle:active{ transform:translateY(0); }
+  .theme-toggle .icon{
+    width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    color:var(--toggle-icon); transition:color .3s ease, transform .3s ease;
+  }
+  .theme-toggle .icon svg{ width:15px; height:15px; }
+  .theme-toggle .icon.sun{ background:linear-gradient(135deg, var(--amber), #f2c86b); color:#fff; box-shadow:0 2px 8px var(--amber-glow); }
+  html[data-theme="dark"] .theme-toggle .icon.sun{ background:transparent; box-shadow:none; color:var(--toggle-icon); }
+  html:not([data-theme="dark"]) .theme-toggle .icon.moon{ background:transparent; }
+  html[data-theme="dark"] .theme-toggle .icon.moon{ background:linear-gradient(135deg, var(--blue), #6fa3ec); color:#fff; box-shadow:0 2px 8px var(--blue-glow); }
+  .theme-toggle .tlabel{ font-size:11px; font-weight:600; color:var(--sub); padding-right:6px; user-select:none; }
+
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
+  }
+
+  @media (max-width: 860px){
+    .theme-toggle .tlabel{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light and dark theme" title="Toggle theme">
+  <span class="tlabel" id="theme-label">Light</span>
+  <span class="icon sun">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.5M12 19v2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12H5M19 12h2.5M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>
+  </span>
+  <span class="icon moon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5z"/></svg>
+  </span>
+</button>
+
+<div class="orb g"></div><div class="orb b"></div><div class="orb a"></div>
+
+<h1>normal auth vs jwt auth</h1>
+<p class="tag">two ways to protect the secure data endpoint after login</p>
+
+<div class="tabs">
+  <button class="tab active jwt" id="tab-jwt" onclick="switchTab('j')">JWT auth</button>
+  <button class="tab normal" id="tab-normal" onclick="switchTab('n')">Normal auth (session)</button>
+</div>
+
+<!-- ===================== JWT AUTH SCREEN ===================== -->
+<div class="stage visible" id="stage-j">
+
+  <svg class="wires" viewBox="0 0 1320 540">
+    <defs>
+      <marker id="arrG-j" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+      <marker id="arrA-j" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+      <marker id="arrB-j" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+    <path class="wire g" d="M113 232 L122 250" marker-end="url(#arrG-j)"/>
+    <path class="wire b" d="M297 232 L334 250" marker-end="url(#arrB-j)"/>
+    <path id="j-path-reg" class="wire g" d="M416 336 L600 120" marker-end="url(#arrG-j)"/>
+    <path id="j-path-log" class="wire g" d="M416 336 L600 250" marker-end="url(#arrG-j)"/>
+    <path id="j-path-sec" class="wire g" d="M416 336 L600 370" marker-end="url(#arrG-j)"/>
+    <path id="j-path-to-db" class="wire a" d="M800 235 L1038 235" marker-end="url(#arrA-j)"/>
+    <path id="j-path-from-db" class="wire a" d="M1038 275 L800 275" marker-end="url(#arrA-j)"/>
+    <circle id="j-dotClient" r="6" fill="var(--green)" style="filter:drop-shadow(0 0 6px var(--green-glow)); opacity:0;">
+      <animateMotion id="j-motionReg" path="M416 336 L600 120" dur="0.9s" begin="indefinite" fill="freeze"/>
+      <animateMotion id="j-motionLog" path="M416 336 L600 250" dur="0.9s" begin="indefinite" fill="freeze"/>
+      <animateMotion id="j-motionSec" path="M416 336 L600 370" dur="0.9s" begin="indefinite" fill="freeze"/>
+    </circle>
+    <circle id="j-dotDb" r="6" fill="var(--amber)" style="filter:drop-shadow(0 0 6px var(--amber-glow)); opacity:0;">
+      <animateMotion id="j-motionDb" path="M800 235 L1038 235" dur="0.9s" begin="indefinite" fill="freeze"/>
+    </circle>
+    <circle id="j-dotStorage" r="5" fill="var(--green)" style="filter:drop-shadow(0 0 6px var(--green-glow)); opacity:0;">
+      <animateMotion id="j-motionStorage" path="M113 232 L122 250" dur="0.6s" begin="indefinite" fill="freeze"/>
+    </circle>
+    <circle id="j-dotPayload" r="5" fill="var(--blue)" style="filter:drop-shadow(0 0 6px var(--blue-glow)); opacity:0;">
+      <animateMotion id="j-motionPayload" path="M297 232 L334 250" dur="0.6s" begin="indefinite" fill="freeze"/>
+    </circle>
+  </svg>
+
+  <div class="client-label">client</div>
+  <div class="client-sub">what this browser tab stores &amp; sends</div>
+  <div class="glass client-outer selected" id="j-client-card" onclick="selectClient('j')">
+    <div class="client-head"><div class="avatar"></div><div><b>Client</b><span>this browser tab</span></div></div>
+    <div class="breakout-row">
+      <div class="subcard storages">
+        <div class="subcard-title"><span class="subcard-dot"></span>Storages</div>
+        <div class="pill-row" id="j-storage-pills">
+          <span class="pill-mini">local</span><span class="pill-mini">session</span><span class="pill-mini">cookies</span>
+        </div>
+      </div>
+      <div class="subcard network">
+        <div class="subcard-title"><span class="subcard-dot"></span>Network</div>
+        <div class="pill-row" id="j-network-pills">
+          <span class="pill-mini">payload</span><span class="pill-mini">headers</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="glass lstorage-panel">
+    <div class="panel-title">&#128190; localStorage</div>
+    <div class="kv-head"><span>key</span><span>value</span></div>
+    <div class="kv-body" id="j-storage-body"><div class="kv-empty">nothing stored yet</div></div>
+  </div>
+
+  <div class="glass payload-panel">
+    <div class="panel-title">&#128225; payload</div>
+    <div class="method-tag" id="j-payload-method">&mdash;</div>
+    <div class="payload-body" id="j-payload-body"><span class="idle">send a request to see it</span></div>
+  </div>
+
+  <div class="backend-label">backend</div>
+  <div class="glass backend-outer"></div>
+
+  <div class="card register selected" id="j-register-card" onclick="toggleForm('j','register')">
+    <span class="step-badge">1</span>
+    <div class="row-top"><span class="method post">POST</span><span class="path">register</span></div>
+    <p class="desc">Creates a user in db</p>
+  </div>
+  <div class="form-panel open" id="j-register-form">
+    <input id="j-reg-name" placeholder="name" value="name1">
+    <input id="j-reg-email" placeholder="email" value="email1@gmail.com">
+    <input id="j-reg-pass" placeholder="password" type="password" value="hunter22">
+    <button class="send" id="j-reg-btn" onclick="doRegister('j')"><span class="shine"></span><span class="label">Send request</span></button>
+    <div class="response" id="j-reg-res"></div>
+  </div>
+
+  <div class="card login" id="j-login-card" onclick="toggleForm('j','login')">
+    <span class="step-badge">2</span>
+    <div class="row-top"><span class="method post">POST</span><span class="path">login</span></div>
+    <p class="desc">Verifies, issues token</p>
+  </div>
+  <div class="form-panel" id="j-login-form">
+    <input id="j-log-user" placeholder="email" value="email1@gmail.com">
+    <input id="j-log-pass" placeholder="password" type="password" value="hunter22">
+    <button class="send" id="j-log-btn" onclick="doLogin('j')"><span class="shine"></span><span class="label">Send request</span></button>
+    <div class="response" id="j-log-res"></div>
+    <span class="badge-token" id="j-token-badge">token acquired</span>
+  </div>
+
+  <div class="card secure" id="j-secure-card" onclick="toggleForm('j','secure')">
+    <span class="step-badge">3</span>
+    <div class="row-top"><span class="method get">GET</span><span class="path">securedata</span></div>
+    <p class="desc">Needs a valid token</p>
+  </div>
+  <div class="form-panel" id="j-secure-form">
+    <div class="lock-note" id="j-lock-note">&#128274; Locked &mdash; login first</div>
+    <input id="j-sec-token" placeholder="paste access token" disabled>
+    <button class="send get-btn" id="j-sec-btn" onclick="doSecure('j')" disabled data-locked-disable="1"><span class="shine"></span><span class="label">Send request</span></button>
+    <div class="response" id="j-sec-res"></div>
+  </div>
+
+  <div class="db-label">db</div>
+  <div class="glass db-outer">
+    <div class="db-inner" id="j-db-inner">
+      <div class="db-title">user { }</div>
+      <div class="empty-note" id="j-empty-note">no users yet</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===================== NORMAL (SESSION) AUTH SCREEN ===================== -->
+<div class="stage" id="stage-n">
+
+  <svg class="wires" viewBox="0 0 1320 540">
+    <defs>
+      <marker id="arrG-n" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+      <marker id="arrA-n" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+      <marker id="arrB-n" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+    <path class="wire g" d="M113 232 L122 250" marker-end="url(#arrG-n)"/>
+    <path class="wire b" d="M297 232 L334 250" marker-end="url(#arrB-n)"/>
+    <path id="n-path-reg" class="wire g" d="M416 336 L600 120" marker-end="url(#arrG-n)"/>
+    <path id="n-path-log" class="wire g" d="M416 336 L600 250" marker-end="url(#arrG-n)"/>
+    <path id="n-path-sec" class="wire g" d="M416 336 L600 370" marker-end="url(#arrG-n)"/>
+    <path id="n-path-to-db" class="wire a" d="M800 235 L1038 235" marker-end="url(#arrA-n)"/>
+    <path id="n-path-from-db" class="wire a" d="M1038 275 L800 275" marker-end="url(#arrA-n)"/>
+    <circle id="n-dotClient" r="6" fill="var(--green)" style="filter:drop-shadow(0 0 6px var(--green-glow)); opacity:0;">
+      <animateMotion id="n-motionReg" path="M416 336 L600 120" dur="0.9s" begin="indefinite" fill="freeze"/>
+      <animateMotion id="n-motionLog" path="M416 336 L600 250" dur="0.9s" begin="indefinite" fill="freeze"/>
+      <animateMotion id="n-motionSec" path="M416 336 L600 370" dur="0.9s" begin="indefinite" fill="freeze"/>
+    </circle>
+    <circle id="n-dotDb" r="6" fill="var(--amber)" style="filter:drop-shadow(0 0 6px var(--amber-glow)); opacity:0;">
+      <animateMotion id="n-motionDb" path="M800 235 L1038 235" dur="0.9s" begin="indefinite" fill="freeze"/>
+    </circle>
+    <circle id="n-dotStorage" r="5" fill="var(--green)" style="filter:drop-shadow(0 0 6px var(--green-glow)); opacity:0;">
+      <animateMotion id="n-motionStorage" path="M113 232 L122 250" dur="0.6s" begin="indefinite" fill="freeze"/>
+    </circle>
+    <circle id="n-dotPayload" r="5" fill="var(--blue)" style="filter:drop-shadow(0 0 6px var(--blue-glow)); opacity:0;">
+      <animateMotion id="n-motionPayload" path="M297 232 L334 250" dur="0.6s" begin="indefinite" fill="freeze"/>
+    </circle>
+  </svg>
+
+  <div class="client-label">client</div>
+  <div class="client-sub">what this browser tab stores &amp; sends</div>
+  <div class="glass client-outer selected" id="n-client-card" onclick="selectClient('n')">
+    <div class="client-head"><div class="avatar"></div><div><b>Client</b><span>this browser tab</span></div></div>
+    <div class="breakout-row">
+      <div class="subcard storages">
+        <div class="subcard-title"><span class="subcard-dot"></span>Storages</div>
+        <div class="pill-row" id="n-storage-pills">
+          <span class="pill-mini">local</span><span class="pill-mini">session</span><span class="pill-mini">cookies</span>
+        </div>
+      </div>
+      <div class="subcard network">
+        <div class="subcard-title"><span class="subcard-dot"></span>Network</div>
+        <div class="pill-row" id="n-network-pills">
+          <span class="pill-mini">payload</span><span class="pill-mini">headers</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="glass lstorage-panel">
+    <div class="panel-title">&#128190; localStorage</div>
+    <div class="kv-head"><span>key</span><span>value</span></div>
+    <div class="kv-body" id="n-storage-body"><div class="kv-empty">nothing stored yet</div></div>
+  </div>
+
+  <div class="glass payload-panel">
+    <div class="panel-title">&#128225; payload</div>
+    <div class="method-tag" id="n-payload-method">&mdash;</div>
+    <div class="payload-body" id="n-payload-body"><span class="idle">send a request to see it</span></div>
+  </div>
+
+  <div class="backend-label">backend</div>
+  <div class="glass backend-outer"></div>
+
+  <div class="card register selected" id="n-register-card" onclick="toggleForm('n','register')">
+    <span class="step-badge">1</span>
+    <div class="row-top"><span class="method post">POST</span><span class="path">register</span></div>
+    <p class="desc">Creates a user in db</p>
+  </div>
+  <div class="form-panel open" id="n-register-form">
+    <input id="n-reg-name" placeholder="name" value="name1">
+    <input id="n-reg-email" placeholder="email" value="email1@gmail.com">
+    <input id="n-reg-pass" placeholder="password" type="password" value="hunter22">
+    <button class="send" id="n-reg-btn" onclick="doRegister('n')"><span class="shine"></span><span class="label">Send request</span></button>
+    <div class="response" id="n-reg-res"></div>
+  </div>
+
+  <div class="card login" id="n-login-card" onclick="toggleForm('n','login')">
+    <span class="step-badge">2</span>
+    <div class="row-top"><span class="method post">POST</span><span class="path">login</span></div>
+    <p class="desc">Verifies, starts a session</p>
+  </div>
+  <div class="form-panel" id="n-login-form">
+    <input id="n-log-user" placeholder="email" value="email1@gmail.com">
+    <input id="n-log-pass" placeholder="password" type="password" value="hunter22">
+    <button class="send" id="n-log-btn" onclick="doLogin('n')"><span class="shine"></span><span class="label">Send request</span></button>
+    <div class="response" id="n-log-res"></div>
+    <span class="session-pill" id="n-session-badge">session active, no token issued</span>
+  </div>
+
+  <div class="card secure" id="n-secure-card" onclick="toggleForm('n','secure')">
+    <span class="step-badge">3</span>
+    <div class="row-top"><span class="method get">GET</span><span class="path">securedata</span></div>
+    <p class="desc">Needs an active session</p>
+  </div>
+  <div class="form-panel" id="n-secure-form">
+    <div class="lock-note" id="n-lock-note">&#128274; Locked &mdash; login first</div>
+    <button class="send get-btn" id="n-sec-btn" onclick="doSecure('n')" disabled data-locked-disable="1"><span class="shine"></span><span class="label">Send request</span></button>
+    <div class="response" id="n-sec-res"></div>
+  </div>
+
+  <div class="db-label">db</div>
+  <div class="glass db-outer">
+    <div class="db-inner" id="n-db-inner">
+      <div class="db-title">user { }</div>
+      <div class="empty-note" id="n-empty-note">no users yet</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function initTheme(){
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(prefersDark ? 'dark' : 'light');
+})();
+
+function applyTheme(mode){
+  document.documentElement.setAttribute('data-theme', mode);
+  const label = document.getElementById('theme-label');
+  if(label) label.textContent = mode === 'dark' ? 'Dark' : 'Light';
+  const btn = document.getElementById('theme-toggle');
+  if(btn) btn.setAttribute('aria-pressed', mode === 'dark' ? 'true' : 'false');
+}
+
+function toggleTheme(){
+  const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+}
+
+const state = {
+  j: { token: null },
+  n: { loggedIn: false }
+};
+
+function switchTab(mode){
+  document.getElementById('stage-j').classList.toggle('visible', mode==='j');
+  document.getElementById('stage-n').classList.toggle('visible', mode==='n');
+  document.getElementById('tab-jwt').classList.toggle('active', mode==='j');
+  document.getElementById('tab-normal').classList.toggle('active', mode==='n');
+}
+
+function selectClient(p){ document.getElementById(p+'-client-card').classList.add('selected'); }
+
+function toggleForm(p, which){
+  document.querySelectorAll('#stage-'+p+' .card').forEach(c=>c.classList.remove('selected'));
+  document.querySelectorAll('#stage-'+p+' .form-panel').forEach(f=>f.classList.remove('open'));
+  document.getElementById(p+'-'+which+'-card').classList.add('selected');
+  document.getElementById(p+'-'+which+'-form').classList.add('open');
+}
+
+function setSending(btn, on){
+  btn.classList.toggle('sending', on);
+  if(on){ btn.disabled = true; } else { btn.disabled = btn.dataset.lockedDisable === '1'; }
+}
+function showResponse(el, text, isErr){
+  el.textContent = text; el.classList.toggle('err', !!isErr); el.classList.add('show');
+}
+function glow(el, ms){ el.classList.add('active-glow'); setTimeout(()=> el.classList.remove('active-glow'), ms); }
+
+function fireClientDot(p, motionSuffix, wireSuffix){
+  const dot = document.getElementById(p+'-dotClient');
+  const wire = document.getElementById(p+'-path-'+wireSuffix);
+  dot.style.opacity = 1; wire.classList.add('active');
+  document.getElementById(p+'-motion'+motionSuffix).beginElement();
+  setTimeout(()=>{ dot.style.opacity = 0; wire.classList.remove('active'); }, 950);
+}
+function fireDbDot(p){
+  const dot = document.getElementById(p+'-dotDb');
+  const wire = document.getElementById(p+'-path-to-db');
+  dot.style.opacity = 1; wire.classList.add('active');
+  document.getElementById(p+'-motionDb').beginElement();
+  setTimeout(()=>{ dot.style.opacity = 0; wire.classList.remove('active'); }, 950);
+}
+function firePayloadDot(p){
+  const dot = document.getElementById(p+'-dotPayload');
+  dot.style.opacity = 1;
+  document.getElementById(p+'-motionPayload').beginElement();
+  setTimeout(()=>{ dot.style.opacity = 0; }, 650);
+}
+function fireStorageDot(p){
+  const dot = document.getElementById(p+'-dotStorage');
+  dot.style.opacity = 1;
+  document.getElementById(p+'-motionStorage').beginElement();
+  setTimeout(()=>{ dot.style.opacity = 0; }, 650);
+}
+
+function maskPass(pass){
+  if(!pass) return '\u2022\u2022\u2022\u2022\u2022\u2022';
+  return pass.length <= 2 ? '*'.repeat(pass.length) : pass.slice(0,2) + '***';
+}
+
+// shows what actually leaves the browser (or is attached automatically) for this request
+function setPayload(p, method, path, lines, pillName){
+  const body = lines.length ? '{\n' + lines.map(l=>'  '+l).join(',\n') + '\n}' : '{ }';
+  document.getElementById(p+'-payload-method').textContent = method + ' /' + path;
+  document.getElementById(p+'-payload-body').textContent = body;
+  document.querySelectorAll('#stage-'+p+' .network .pill-mini').forEach(el=>{
+    el.classList.toggle('hit', el.textContent === pillName);
+  });
+  firePayloadDot(p);
+}
+
+function buildKvRow(key, val, delay){
+  return '<div class="kv-row" style="animation-delay:'+delay+'s"><span class="k">'+key+'</span><span class="v">'+val+'</span></div>';
+}
+function markStoragePill(p, pillName){
+  document.querySelectorAll('#stage-'+p+' .storages .pill-mini').forEach(el=>{
+    el.classList.toggle('hit', el.textContent === pillName);
+  });
+}
+
+function doRegister(p){
+  selectClient(p);
+  const btn = document.getElementById(p+'-reg-btn');
+  const name = document.getElementById(p+'-reg-name').value || 'name1';
+  const email = document.getElementById(p+'-reg-email').value || 'email1@gmail.com';
+  const pass = document.getElementById(p+'-reg-pass').value || 'hunter22';
+
+  setSending(btn, true);
+  setPayload(p, 'POST', 'register',
+    ['"name": "'+name+'"', '"email": "'+email+'"', '"password": "'+maskPass(pass)+'"'], 'payload');
+  fireClientDot(p, 'Reg', 'reg');
+
+  setTimeout(()=>{
+    glow(document.getElementById(p+'-register-card'), 1600);
+    fireDbDot(p);
+    setTimeout(()=>{
+      setSending(btn, false);
+      showResponse(document.getElementById(p+'-reg-res'),
+        '{ "status": 201,\n  "user": { "name": "'+name+'", "email": "'+email+'" } }');
+      const inner = document.getElementById(p+'-db-inner');
+      const empty = document.getElementById(p+'-empty-note');
+      if(empty) empty.remove();
+      const row = document.createElement('div');
+      row.className = 'user-row';
+      row.innerHTML =
+        '<span class="field"><b>name:</b> '+name+'</span>' +
+        '<span class="field"><b>email:</b> '+email+'</span>' +
+        '<span class="field"><b>password:</b> &bull;&bull;&bull;&bull;&bull;&bull;</span>';
+      inner.appendChild(row);
+    }, 650);
+  }, 700);
+}
+
+function doLogin(p){
+  selectClient(p);
+  const btn = document.getElementById(p+'-log-btn');
+  const user = document.getElementById(p+'-log-user').value || 'email1@gmail.com';
+  const pass = document.getElementById(p+'-log-pass').value || 'hunter22';
+
+  setSending(btn, true);
+  setPayload(p, 'POST', 'login', ['"email": "'+user+'"', '"password": "'+maskPass(pass)+'"'], 'payload');
+  fireClientDot(p, 'Log', 'log');
+
+  setTimeout(()=>{
+    glow(document.getElementById(p+'-login-card'), 1600);
+    fireDbDot(p);
+    setTimeout(()=>{
+      setSending(btn, false);
+      const secBtn = document.getElementById(p+'-sec-btn');
+      secBtn.dataset.lockedDisable = '0';
+      secBtn.disabled = false;
+
+      if(p === 'j'){
+        state.j.token = 'eyJhbGciOi.' + Math.random().toString(36).slice(2,10) + '.token';
+        showResponse(document.getElementById('j-log-res'),
+          '{ "status": 200,\n  "user": "'+user+'",\n  "token": "'+state.j.token+'" }');
+        document.getElementById('j-token-badge').classList.add('show');
+        const tokenInput = document.getElementById('j-sec-token');
+        tokenInput.disabled = false;
+        tokenInput.value = state.j.token;
+        document.getElementById('j-lock-note').innerHTML = '&#128275; Unlocked &mdash; token filled in below, edit or send as is';
+
+        const jBody = document.getElementById('j-storage-body');
+        jBody.innerHTML =
+          buildKvRow('token', state.j.token, .05) +
+          buildKvRow('email', user, .2);
+        markStoragePill('j', 'local');
+        fireStorageDot('j');
+      } else {
+        state.n.loggedIn = true;
+        showResponse(document.getElementById('n-log-res'),
+          '{ "status": 200,\n  "user": "'+user+'" }');
+        document.getElementById('n-session-badge').classList.add('show');
+        document.getElementById('n-lock-note').innerHTML = '&#128275; Unlocked &mdash; session cookie sent automatically, no token needed';
+
+        const nBody = document.getElementById('n-storage-body');
+        nBody.innerHTML = '<div class="kv-empty">still empty &mdash; the server set an httpOnly session cookie instead, so JavaScript can\'t see or store it here.</div>';
+        markStoragePill('n', 'cookies');
+        // no fireStorageDot here on purpose: session auth never writes to localStorage
+      }
+    }, 650);
+  }, 700);
+}
+
+function doSecure(p){
+  selectClient(p);
+  const btn = document.getElementById(p+'-sec-btn');
+  const resEl = document.getElementById(p+'-sec-res');
+  const card = document.getElementById(p+'-secure-card');
+
+  if(p === 'j'){
+    const entered = document.getElementById('j-sec-token').value.trim();
+    if(!entered){
+      card.classList.add('shake'); setTimeout(()=> card.classList.remove('shake'), 400);
+      showResponse(resEl, '{ "status": 401,\n  "error": "no token provided" }', true);
+      return;
+    }
+    if(!state.j.token || entered !== state.j.token){
+      card.classList.add('shake'); setTimeout(()=> card.classList.remove('shake'), 400);
+      showResponse(resEl, '{ "status": 403,\n  "error": "invalid or expired token" }', true);
+      return;
+    }
+    setPayload('j', 'GET', 'securedata', ['"Authorization": "Bearer '+entered.slice(0,14)+'\u2026"'], 'headers');
+  } else {
+    if(!state.n.loggedIn){
+      card.classList.add('shake'); setTimeout(()=> card.classList.remove('shake'), 400);
+      showResponse(resEl, '{ "status": 401,\n  "error": "no active session" }', true);
+      return;
+    }
+    setPayload('n', 'GET', 'securedata', ['"Cookie": "connect.sid=\u2026 (attached automatically)"'], 'headers');
+  }
+
+  setSending(btn, true);
+  fireClientDot(p, 'Sec', 'sec');
+  setTimeout(()=>{
+    glow(card, 1600);
+    fireDbDot(p);
+    setTimeout(()=>{
+      setSending(btn, false);
+      const verifiedBy = p === 'j' ? 'token' : 'session cookie';
+      showResponse(resEl,
+        '{ "status": 200,\n  "verifiedBy": "'+verifiedBy+'",\n  "data": [ \u{1F9CA} \u{1F510} \u2705 ] }');
+    }, 650);
+  }, 700);
+}
+</script>
+
+</body>
+</html>
