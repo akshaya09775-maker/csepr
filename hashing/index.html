@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hash Chamber — watch a password become a hash</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="orb orb-a"></div>
+  <div class="orb orb-b"></div>
+  <div class="orb orb-c"></div>
+  <div class="grain"></div>
+
+  <main>
+
+    <header class="hero">
+      <p class="kicker">manual polynomial rolling hash</p>
+      <h1>Watch your password<br>fall through the <span class="hero-accent">hash chamber</span></h1>
+      <p class="sub">Every character gets multiplied, folded, and wrapped into the next.
+        Change one letter and the whole chain downstream lights up differently. Type something below and press <strong>drop it in</strong>.</p>
+    </header>
+
+    <section class="panel input-panel glass">
+      <div class="input-row">
+        <label for="pwInput">password</label>
+        <input id="pwInput" type="text" maxlength="14" value="Cat42!" autocomplete="off" spellcheck="false" />
+      </div>
+      <div class="controls">
+        <button id="dropBtn" class="btn primary">
+          <span class="btn-label">drop it in</span>
+        </button>
+        <button id="stepBtn" class="btn ghost">step once</button>
+        <button id="resetBtn" class="btn ghost">reset</button>
+        <div class="speed-control">
+          <label for="speed">speed</label>
+          <input id="speed" type="range" min="300" max="1600" step="50" value="850" />
+        </div>
+      </div>
+    </section>
+
+    <section class="chamber glass">
+      <div class="chamber-inner">
+
+        <div class="track-row" id="charTrack"></div>
+
+        <div class="funnel">
+          <svg viewBox="0 0 200 60" class="funnel-svg" aria-hidden="true">
+            <path d="M10 4 L190 4 L120 56 L80 56 Z" />
+          </svg>
+        </div>
+
+        <div class="reactor" id="reactor">
+          <div class="reactor-glow"></div>
+          <div class="reactor-readout">
+            <div class="stat">
+              <span class="stat-label">char code</span>
+              <span class="stat-value" id="v-char">—</span>
+            </div>
+            <div class="stat-op">×31</div>
+            <div class="stat">
+              <span class="stat-label">multiplied</span>
+              <span class="stat-value" id="v-mul">—</span>
+            </div>
+            <div class="stat-op">+c</div>
+            <div class="stat">
+              <span class="stat-label">mod 1e9+7</span>
+              <span class="stat-value" id="v-mod">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hash-out">
+          <div class="hash-out-label">running hash</div>
+          <div class="hash-out-value" id="v-running">7</div>
+          <div class="hash-bar-track"><div class="hash-bar-fill" id="hashBar"></div></div>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="panel final-panel glass" id="finalPanel">
+      <p class="final-label">final hash (hex)</p>
+      <p class="final-value" id="finalHex">—</p>
+      <p class="final-note">This is what <code>manualHash()</code> returns — a fixed-length fingerprint of everything that fell through the chamber above.</p>
+    </section>
+
+    <section class="explain">
+      <h2>What's actually happening</h2>
+      <div class="explain-grid">
+        <div class="explain-card glass">
+          <span class="explain-num">01</span>
+          <h3>Seed</h3>
+          <p>The running hash starts at a fixed number, <code>7</code> — never zero, so an empty password still produces a real value.</p>
+        </div>
+        <div class="explain-card glass">
+          <span class="explain-num">02</span>
+          <h3>Roll</h3>
+          <p>Each character's numeric code is folded in: <code>hash = hash × 31 + code</code>. Every prior character still shapes the result.</p>
+        </div>
+        <div class="explain-card glass">
+          <span class="explain-num">03</span>
+          <h3>Wrap</h3>
+          <p>The result is wrapped with <code>% 1,000,000,007</code>, a large prime, keeping the number bounded and well spread out.</p>
+        </div>
+        <div class="explain-card glass">
+          <span class="explain-num">04</span>
+          <h3>Encode</h3>
+          <p>The final number is converted to hex, so it reads like a conventional hash string rather than a long decimal.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p>Educational demo only — not suitable for real password storage. Use bcrypt or Argon2 for that.</p>
+    </footer>
+
+  </main>
+
+<script src="script.js"></script>
+</body>
+</html>
