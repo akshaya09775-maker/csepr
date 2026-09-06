@@ -1,0 +1,431 @@
+============================================================
+                    OPTIONAL IN JAVA
+============================================================
+
+WHAT IS OPTIONAL?
+-----------------
+
+Optional is a CONTAINER / BOX that may or may not contain
+a value.
+
+Think of it like a box:
+
+                    Optional
+                 ┌─────────────┐
+                 │   "Vikram"  │  ← value exists
+                 └─────────────┘
+
+
+OR
+
+
+                    Optional
+                 ┌─────────────┐
+                 │    EMPTY    │  ← no value
+                 └─────────────┘
+
+
+============================================================
+IS OPTIONAL A CLASS OR INTERFACE?
+============================================================
+
+                    Optional
+                       │
+                       ▼
+                  ┌──────────┐
+                  │  CLASS   │
+                  └──────────┘
+
+Optional is a CLASS in Java.
+
+Full name:
+
+        java.util.Optional<T>
+
+Example:
+
+        Optional<String>
+
+Here:
+
+        Optional  → Class
+        String    → Type of value inside the box
+
+
+============================================================
+WHERE DOES OPTIONAL COME FROM?
+============================================================
+
+Optional belongs to:
+
+        java.util package
+
+So we import it using:
+
+        import java.util.Optional;
+
+
+============================================================
+OPTIONAL AS A BOX
+============================================================
+
+        Optional<String>
+                │
+                ▼
+        ┌─────────────────┐
+        │     "Vikram"    │
+        └─────────────────┘
+
+The box contains a String value.
+
+
+If there is no value:
+
+        Optional<String> name = Optional.empty();
+
+                │
+                ▼
+
+        ┌─────────────────┐
+        │      EMPTY      │
+        └─────────────────┘
+
+
+============================================================
+THE MAIN IDEA
+============================================================
+
+                         OPTIONAL
+                            │
+                   ┌────────┴────────┐
+                   ↓                 ↓
+              HAS VALUE          NO VALUE
+                   │                 │
+                   ↓                 ↓
+           Optional[Vikram]   Optional.empty()
+
+
+So Optional represents:
+
+        "A value may exist
+         OR
+         a value may not exist."
+
+
+============================================================
+WHY DO WE NEED OPTIONAL?
+============================================================
+
+Without Optional:
+
+        String name = null;
+
+        System.out.println(name.length());
+
+Problem:
+
+        NullPointerException
+
+
+Because:
+
+        name
+          │
+          ▼
+        null
+
+
+Optional helps us represent this situation safely:
+
+        Optional<String> name =
+                Optional.ofNullable(null);
+
+Result:
+
+        Optional.empty()
+
+
+============================================================
+CREATING OPTIONAL
+============================================================
+
+1. Optional.of()
+
+        Optional<String> name =
+                Optional.of("Vikram");
+
+        Result:
+
+        ┌─────────────┐
+        │   Vikram    │
+        └─────────────┘
+
+
+IMPORTANT:
+
+        Optional.of(null)
+
+        ❌ NullPointerException
+
+
+------------------------------------------------------------
+
+2. Optional.ofNullable()
+
+        String name = null;
+
+        Optional<String> result =
+                Optional.ofNullable(name);
+
+        Result:
+
+        ┌─────────────┐
+        │    EMPTY    │
+        └─────────────┘
+
+
+If:
+
+        String name = "Vikram";
+
+        Optional<String> result =
+                Optional.ofNullable(name);
+
+Then:
+
+        ┌─────────────┐
+        │   Vikram    │
+        └─────────────┘
+
+
+------------------------------------------------------------
+
+3. Optional.empty()
+
+        Optional<String> name =
+                Optional.empty();
+
+        Result:
+
+        ┌─────────────┐
+        │    EMPTY    │
+        └─────────────┘
+
+
+============================================================
+GETTING THE VALUE
+============================================================
+
+        Optional<String> name =
+                Optional.of("Vikram");
+
+        System.out.println(name.get());
+
+
+Output:
+
+        Vikram
+
+
+But be careful!
+
+        Optional<String> name =
+                Optional.empty();
+
+        name.get();
+
+This causes:
+
+        NoSuchElementException
+
+
+============================================================
+CHECKING WHETHER VALUE EXISTS
+============================================================
+
+        Optional<String> name =
+                Optional.of("Vikram");
+
+        if (name.isPresent()) {
+            System.out.println("Value exists");
+        }
+
+
+Output:
+
+        Value exists
+
+
+============================================================
+OR ELSE
+============================================================
+
+If value exists → use the value
+
+If value doesn't exist → use default value
+
+
+        Optional<String> name =
+                Optional.empty();
+
+        String result =
+                name.orElse("Unknown");
+
+
+Output:
+
+        Unknown
+
+
+Example:
+
+        Optional<String> name =
+                Optional.of("Vikram");
+
+        String result =
+                name.orElse("Unknown");
+
+
+Output:
+
+        Vikram
+
+
+============================================================
+REAL SPRING BOOT EXAMPLE
+============================================================
+
+Spring Data JPA commonly uses Optional.
+
+        Optional<Student> student =
+                studentRepository.findById(1L);
+
+
+Why?
+
+Because the student may exist:
+
+        Database
+
+        ID       NAME
+        ----------------
+         1       Vikram
+         2       Rahul
+         3       John
+
+
+If ID = 1:
+
+        Optional<Student>
+                │
+                ▼
+        ┌────────────────┐
+        │ Student        │
+        │ id = 1         │
+        │ name = Vikram  │
+        └────────────────┘
+
+
+If ID = 100:
+
+        Optional<Student>
+                │
+                ▼
+        ┌────────────────┐
+        │     EMPTY      │
+        └────────────────┘
+
+
+============================================================
+MOST IMPORTANT METHODS
+============================================================
+
+        Optional.of()
+              ↓
+        Create Optional when value is NOT null
+
+
+        Optional.ofNullable()
+              ↓
+        Create Optional when value MAY be null
+
+
+        Optional.empty()
+              ↓
+        Create an empty Optional
+
+
+        isPresent()
+              ↓
+        Check whether value exists
+
+
+        get()
+              ↓
+        Get the value
+
+
+        orElse()
+              ↓
+        Get value OR provide a default value
+
+
+        ifPresent()
+              ↓
+        Execute something if value exists
+
+
+============================================================
+ONE LINE TO REMEMBER
+============================================================
+
+Optional is a CLASS in Java that acts like a box which
+may contain a value or may be empty.
+
+        Optional<T>
+
+        T = Type of value inside the box
+
+
+Example:
+
+        Optional<String>
+
+        Optional<Integer>
+
+        Optional<Student>
+
+
+============================================================
+FINAL PICTURE
+============================================================
+
+                    Optional<T>
+                         │
+              ┌──────────┴──────────┐
+              ↓                     ↓
+          VALUE EXISTS           VALUE ABSENT
+              │                     │
+              ↓                     ↓
+      Optional.of(value)    Optional.empty()
+              │                     │
+              ↓                     ↓
+        ┌─────────────┐       ┌─────────────┐
+        │   Vikram    │       │    EMPTY    │
+        └─────────────┘       └─────────────┘
+
+
+                    ⭐ REMEMBER ⭐
+
+              Optional = CLASS
+
+              Package = java.util
+
+              Full name =
+              java.util.Optional<T>
+
+              Purpose =
+              Represent a value that may or may
+              not exist and reduce null-related
+              problems.
+============================================================
