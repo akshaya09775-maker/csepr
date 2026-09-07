@@ -1,0 +1,91 @@
+================================================
+       ResponseEntity<?> IN SPRING BOOT
+================================================
+
+ResponseEntity<?> means:
+
+    "I don't specify the exact type
+     of response."
+
+Example:
+
+    @GetMapping("/hello")
+    public ResponseEntity<?> hello() {
+
+        HelloDTO dto =
+            new HelloDTO("Hello", "Vikram");
+
+        return ResponseEntity.ok(dto);
+    }
+
+
+================================================
+WHAT IS HAPPENING?
+================================================
+
+        ResponseEntity<?>
+              │
+              ▼
+        ┌─────────────┐
+        │  HelloDTO   │
+        └─────────────┘
+
+
+The ? means:
+
+        ANY TYPE
+
+
+So we can return:
+
+    DTO
+    String
+    Student
+    User
+    etc.
+
+
+================================================
+ResponseEntity<DTO>
+================================================
+
+    ResponseEntity<HelloDTO>
+
+Means:
+
+    "I will return HelloDTO."
+
+
+================================================
+ResponseEntity<?>
+================================================
+
+    ResponseEntity<?>
+
+Means:
+
+    "I can return any type."
+
+
+================================================
+EASY RULE
+================================================
+
+    ResponseEntity<HelloDTO>
+            ↓
+      Specific type
+
+
+    ResponseEntity<?>
+            ↓
+       Any type
+
+
+⭐ Best practice:
+
+Use ResponseEntity<DTO> when you know
+the response type.
+
+Use ResponseEntity<?> when the response
+can have different types.
+================================================

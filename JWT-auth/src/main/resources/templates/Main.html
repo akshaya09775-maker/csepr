@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>API Data Test</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0d0f14;
+    background-image: radial-gradient(circle at 20% 20%, rgba(79, 195, 247, 0.06), transparent 40%);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #e8eaf0;
+    padding: 40px 20px;
+  }
+
+  .window {
+    width: 100%;
+    max-width: 620px;
+    background: #15181f;
+    border: 1px solid #262b36;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  }
+
+  .titlebar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #10131a;
+    border-bottom: 1px solid #262b36;
+  }
+
+  .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+  }
+
+  .dot.red { background: #f44336; }
+  .dot.yellow { background: #f5a623; }
+  .dot.green { background: #4caf50; }
+
+  .titlebar-label {
+    margin-left: 6px;
+    font-size: 12px;
+    color: #6b7280;
+    font-family: "SFMono-Regular", Consolas, monospace;
+  }
+
+  .titlebar-spacer {
+    flex: 1;
+  }
+
+  .btn-logout {
+    padding: 5px 12px;
+    background: transparent;
+    border: 1px solid #3a2020;
+    border-radius: 6px;
+    color: #ef9a9a;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+
+  .btn-logout:hover {
+    background: rgba(244, 67, 54, 0.1);
+    border-color: #f44336;
+  }
+
+  .content {
+    padding: 28px 28px 30px;
+  }
+
+  .header-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  h1 {
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 26px;
+  }
+
+  .field {
+    margin-bottom: 16px;
+  }
+
+  label {
+    display: block;
+    font-size: 12.5px;
+    color: #9aa1af;
+    margin-bottom: 7px;
+  }
+
+  textarea {
+    width: 100%;
+    height: 68px;
+    padding: 11px 13px;
+    border: 1px solid #262b36;
+    border-radius: 7px;
+    background: #0d0f14;
+    color: #f5a623;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 12.5px;
+    resize: vertical;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  textarea::placeholder {
+    color: #464b57;
+    font-family: "SFMono-Regular", Consolas, monospace;
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: #4fc3f7;
+    box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.12);
+  }
+
+  .row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    padding: 11px 13px;
+    border: 1px solid #262b36;
+    border-radius: 7px;
+    background: #0d0f14;
+    color: #e8eaf0;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 12.5px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  input[type="text"]:focus {
+    outline: none;
+    border-color: #4fc3f7;
+    box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.12);
+  }
+
+  button {
+    padding: 11px 20px;
+    border: none;
+    border-radius: 7px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.15s ease, transform 0.05s ease;
+  }
+
+  button:active {
+    transform: scale(0.98);
+  }
+
+  .btn-send {
+    background: #4fc3f7;
+    color: #0d0f14;
+  }
+
+  .btn-send:hover:not(:disabled) {
+    background: #6fd0f8;
+  }
+
+  .btn-send:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .btn-clear {
+    background: #1c1f28;
+    color: #9aa1af;
+    border: 1px solid #262b36;
+  }
+
+  .btn-clear:hover {
+    background: #22262f;
+    color: #c5cad4;
+  }
+
+  .spinner {
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(13, 15, 20, 0.3);
+    border-top-color: #0d0f14;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: none;
+  }
+
+  .spinner.show {
+    display: inline-block;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid #1e222c;
+    margin: 24px 0 16px;
+  }
+
+  .response-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+
+  .response-label {
+    font-size: 12.5px;
+    color: #9aa1af;
+  }
+
+  #status {
+    font-size: 11.5px;
+    color: #464b57;
+    font-family: "SFMono-Regular", Consolas, monospace;
+  }
+
+  #response {
+    width: 100%;
+    min-height: 130px;
+    padding: 14px;
+    border: 1px solid #262b36;
+    border-radius: 7px;
+    background: #0d0f14;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #a5d6a7;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  #response.error {
+    color: #ef9a9a;
+    border-color: rgba(244, 67, 54, 0.4);
+  }
+
+  #response.waiting {
+    color: #464b57;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<div class="window">
+  <div class="titlebar">
+    <span class="dot red"></span>
+    <span class="dot yellow"></span>
+    <span class="dot green"></span>
+    <span class="titlebar-label">api/data</span>
+    <span class="titlebar-spacer"></span>
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+
+  <div class="content">
+    <h1>      📡  API Data Test</h1>
+    <p class="subtitle">Send an authenticated request and inspect the response</p>
+
+    <div class="field">
+      <label for="token">JWT token</label>
+      <textarea id="token" placeholder="eyJhbGciOiJIUzI1NiJ9..."></textarea>
+    </div>
+
+    <div class="field">
+      <label for="url">Endpoint</label>
+      <div class="row">
+        <input type="text" id="url" value="http://127.0.0.1:4040/api/data">
+        <button class="btn-send" id="sendBtn" onclick="sendRequest()">
+          <span class="spinner" id="spinner"></span>
+          <span id="sendLabel">Send</span>
+        </button>
+        <button class="btn-clear" onclick="clearAll()">Clear</button>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="response-header">
+      <span class="response-label">Response</span>
+      <span id="status"></span>
+    </div>
+    <div id="response" class="waiting">Waiting for request...</div>
+  </div>
+</div>
+
+<script>
+    // Auto logout if there's no login data in localStorage
+    if (!localStorage.getItem("user")) {
+        window.location.href = "/login";
+    }
+
+    function logout() {
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+    }
+
+    const responseEl = document.getElementById("response");
+    const statusEl = document.getElementById("status");
+    const sendBtn = document.getElementById("sendBtn");
+    const sendLabel = document.getElementById("sendLabel");
+    const spinner = document.getElementById("spinner");
+
+    function setLoading(isLoading) {
+        sendBtn.disabled = isLoading;
+        spinner.classList.toggle("show", isLoading);
+        sendLabel.textContent = isLoading ? "Sending..." : "Send";
+    }
+
+    async function sendRequest() {
+        const token = document.getElementById("token").value.trim();
+        const url = document.getElementById("url").value.trim();
+
+        if (!token) {
+            responseEl.className = "error";
+            responseEl.textContent = "Please paste a token first.";
+            statusEl.textContent = "";
+            return;
+        }
+
+        responseEl.className = "";
+        responseEl.textContent = "Loading...";
+        statusEl.textContent = "";
+        setLoading(true);
+
+        try {
+            const start = Date.now();
+            const res = await fetch(url, {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            });
+
+            const elapsed = Date.now() - start;
+            const data = await res.text();
+
+            statusEl.textContent = `Status: ${res.status} | Time: ${elapsed}ms`;
+
+            responseEl.className = res.ok ? "" : "error";
+            try {
+                responseEl.textContent = JSON.stringify(JSON.parse(data), null, 2);
+            } catch {
+                responseEl.textContent = data;
+            }
+        } catch (err) {
+            responseEl.className = "error";
+            responseEl.textContent = "Request failed: " + err.message;
+            statusEl.textContent = "";
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    function clearAll() {
+        document.getElementById("token").value = "";
+        document.getElementById("url").value = "http://127.0.0.1:4040/api/data";
+        responseEl.className = "waiting";
+        responseEl.textContent = "Waiting for request...";
+        statusEl.textContent = "";
+    }
+</script>
+
+</body>
+</html>

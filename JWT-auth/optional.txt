@@ -1,0 +1,67 @@
+What is Optional in Java?
+
+Optional is a container/object that may or may not contain a value.
+
+Think of it like a box:
+
+
+        Optional
+       ┌─────────┐
+       │  "Vikram" │  ← value exists
+       └─────────┘
+
+            or
+
+               Optional
+       ┌─────────┐
+       │  empty  │  ← no value
+       └─────────┘
+
+
+       It is mainly used to handle situations where a value might be null.
+
+
+       📦 Think of Optional as a box
+
+       Optional<String>
+                │
+                ▼
+            ┌─────────────────┐
+            │     "Vikram"    │
+            └─────────────────┘
+
+            If there is no value:
+            Optional<String> name = Optional.empty();
+
+            Then:
+                        
+            ┌─────────────────┐
+            │      EMPTY      │
+            └─────────────────┘
+
+                                OPTIONAL
+                                 │
+                        ┌────────┴────────┐
+                        ↓                 ↓
+                    HAS VALUE          NO VALUE
+                        │                 │
+                        ↓                 ↓
+                Optional[Vikram]   Optional.empty()
+
+
+
+
+                    import java.util.Optional;
+
+                    public class Main {
+                        public static void main(String[] args) {
+
+                            Optional<String> name = Optional.of("Vikram");
+
+                            System.out.println("\n\t "+ name);
+                        }
+                    }
+
+
+
+

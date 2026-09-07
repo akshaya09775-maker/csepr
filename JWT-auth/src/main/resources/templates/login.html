@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Login</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0d0f14;
+    background-image: radial-gradient(circle at 20% 20%, rgba(79, 195, 247, 0.06), transparent 40%);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #e8eaf0;
+    padding: 20px;
+  }
+
+  .window {
+    width: 100%;
+    max-width: 400px;
+    background: #15181f;
+    border: 1px solid #262b36;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  }
+
+  .titlebar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #10131a;
+    border-bottom: 1px solid #262b36;
+  }
+
+  .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+  }
+
+  .dot.red { background: #f44336; }
+  .dot.yellow { background: #f5a623; }
+  .dot.green { background: #4caf50; }
+
+  .titlebar-label {
+    margin-left: 6px;
+    font-size: 12px;
+    color: #6b7280;
+    font-family: "SFMono-Regular", Consolas, monospace;
+  }
+
+  .content {
+    padding: 32px 28px 28px;
+  }
+
+  h1 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 28px;
+  }
+
+  .field {
+    margin-bottom: 18px;
+  }
+
+  label {
+    display: block;
+    font-size: 12.5px;
+    color: #9aa1af;
+    margin-bottom: 7px;
+  }
+
+  .input-wrap {
+    position: relative;
+  }
+
+  input {
+    width: 100%;
+    padding: 11px 13px;
+    background: #0d0f14;
+    border: 1px solid #262b36;
+    border-radius: 7px;
+    color: #e8eaf0;
+    font-size: 14px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  input::placeholder {
+    color: #464b57;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: #4fc3f7;
+    box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.12);
+  }
+
+  input:invalid:not(:placeholder-shown) {
+    border-color: #ef9a9a;
+  }
+
+  .toggle-visibility {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #6b7280;
+    font-size: 11.5px;
+    cursor: pointer;
+    padding: 4px 6px;
+    width: auto;
+  }
+
+  .toggle-visibility:hover {
+    color: #9aa1af;
+  }
+
+  button[type="submit"] {
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    background: #4fc3f7;
+    border: none;
+    border-radius: 7px;
+    color: #0d0f14;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.15s ease, transform 0.05s ease;
+  }
+
+  button[type="submit"]:hover:not(:disabled) {
+    background: #6fd0f8;
+  }
+
+  button[type="submit"]:active:not(:disabled) {
+    transform: scale(0.99);
+  }
+
+  button[type="submit"]:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(13, 15, 20, 0.3);
+    border-top-color: #0d0f14;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: none;
+  }
+
+  .spinner.show {
+    display: inline-block;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .message {
+    margin-top: 16px;
+    font-size: 13px;
+    padding: 10px 12px;
+    border-radius: 7px;
+    display: none;
+    line-height: 1.4;
+  }
+
+  .message.error {
+    display: block;
+    background: rgba(239, 154, 154, 0.08);
+    color: #ef9a9a;
+    border: 1px solid rgba(239, 154, 154, 0.25);
+  }
+
+  .message.success {
+    display: block;
+    background: rgba(165, 214, 167, 0.08);
+    color: #a5d6a7;
+    border: 1px solid rgba(165, 214, 167, 0.25);
+  }
+
+  .endpoint {
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid #1e222c;
+    font-size: 11px;
+    color: #464b57;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="window">
+  <div class="titlebar">
+    <span class="dot red"></span>
+    <span class="dot yellow"></span>
+    <span class="dot green"></span>
+    <span class="titlebar-label">auth/login</span>
+  </div>
+
+  <div class="content">
+    <h1>Welcome back</h1>
+    <p class="subtitle">Sign in to access the API console</p>
+
+    <form id="loginForm" novalidate>
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="you@example.com" required />
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="input-wrap">
+          <input type="password" id="password" placeholder="••••••••" required />
+          <button type="button" class="toggle-visibility" id="toggleBtn">Show</button>
+        </div>
+      </div>
+
+      <button type="submit" id="submitBtn">
+        <span class="spinner" id="spinner"></span>
+        <span id="submitLabel">Login</span>
+      </button>
+    </form>
+
+    <div class="message" id="message"></div>
+
+    <div class="endpoint">POST 40.0.8.246:4040/login</div>
+  </div>
+</div>
+
+<script>
+  const API_URL = "http://127.0.0.1:4040/login";
+
+  const form = document.getElementById("loginForm");
+  const submitBtn = document.getElementById("submitBtn");
+  const submitLabel = document.getElementById("submitLabel");
+  const spinner = document.getElementById("spinner");
+  const messageBox = document.getElementById("message");
+  const passwordInput = document.getElementById("password");
+  const toggleBtn = document.getElementById("toggleBtn");
+
+  toggleBtn.addEventListener("click", () => {
+    const isHidden = passwordInput.type === "password";
+    passwordInput.type = isHidden ? "text" : "password";
+    toggleBtn.textContent = isHidden ? "Hide" : "Show";
+  });
+
+  function setLoading(isLoading) {
+    submitBtn.disabled = isLoading;
+    spinner.classList.toggle("show", isLoading);
+    submitLabel.textContent = isLoading ? "Logging in..." : "Login";
+  }
+
+  function showMessage(text, type) {
+    messageBox.className = "message " + type;
+    messageBox.textContent = text;
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const email = document.getElementById("email").value.trim();
+    const password = passwordInput.value;
+
+    messageBox.className = "message";
+    messageBox.textContent = "";
+    setLoading(true);
+
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem("user", JSON.stringify(data));
+        showMessage("Login successful. Redirecting...", "success");
+        form.reset();
+        setTimeout(() => {
+          window.location.href = "/main";
+        }, 1000);
+      } else {
+        showMessage(data.message || "Login failed. Please check your credentials.", "error");
+        setLoading(false);
+      }
+    } catch (err) {
+      showMessage("Could not reach the server. Check your connection and try again.", "error");
+      setLoading(false);
+    }
+  });
+</script>
+
+</body>
+</html>

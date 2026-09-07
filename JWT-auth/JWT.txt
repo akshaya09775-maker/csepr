@@ -1,0 +1,139 @@
+                    JWT TOKEN CREATION
+                    ==================
+
+Jwts.builder()
+     |
+     |  Start creating a JWT
+     ↓
+.subject(email)
+     |
+     |  Put the user's email into the JWT
+     |  Example: "vikram@gmail.com"
+     ↓
+.issuedAt(new Date())
+     |
+     |  Store the time when the token was created
+     |  new Date() = current date + time
+     ↓
+.expiration(
+    new Date(System.currentTimeMillis() + 30 * 1000)
+)
+     |
+     |  Set the token expiration time
+     |
+     |  System.currentTimeMillis()
+     |          = current time
+     |
+     |  30 * 1000
+     |          = 30,000 milliseconds
+     |          = 30 seconds
+     |
+     |  So:
+     |  Current Time + 30 Seconds
+     |          ↓
+     |  Token Expiration Time
+     ↓
+.signWith(getSecret())
+     |
+     |  Get the SecretKey using getSecret()
+     |  and use it to SIGN the JWT 🔐
+     ↓
+.compact()
+     |
+     |  Finish the JWT
+     |  Convert it into a String
+     ↓
+              JWT TOKEN
+     |
+     ↓
+eyJhbGciOiJIUzI1NiJ9...........
+
+
+                    SIMPLE FLOW
+                    ============
+
+Email
+  ↓
+subject(email)
+  ↓
+Creation Time
+  ↓
+issuedAt(new Date())
+  ↓
+Expiry Time
+  ↓
+expiration(30 seconds)
+  ↓
+Secret Key 🔐
+  ↓
+signWith(getSecret())
+  ↓
+compact()
+  ↓
+JWT String 🎫
+
+
+IMPORTANT:
+
+Jwts.builder()       → Start JWT
+subject()             → Who owns the token?
+issuedAt()            → When was it created?
+expiration()          → When will it expire?
+signWith()            → Sign/protect the token
+compact()             → Convert JWT to String
+
+
+ONE-LINE MEMORY:
+
+EMAIL → CREATE TIME → EXPIRY TIME → SIGN 🔐 → JWT STRING
+
+
+Client
+  ↓
+JWT Token
+  ↓
+validateAuthHeader()
+  ↓
+┌─────────────────┐
+│ Is token valid? │
+└────────┬────────┘
+         │
+      YES│NO
+         ↓
+      Continue
+
+
+                CLIENT
+                   |
+                   |
+                   | GET /api/data
+                   |
+                   | Authorization: Bearer JWT
+                   ↓
+            ┌───────────────┐
+            │   CONTROLLER  │
+            └───────┬───────┘
+                    |
+                    ↓
+        @RequestHeader("Authorization")
+                    |
+                    ↓
+               authHeader
+                    |
+                    ↓
+    authService.validateAuthHeader()
+                    |
+              ┌─────┴─────┐
+              ↓           ↓
+          VALID ✅     INVALID ❌
+              ↓           ↓
+        Continue       Reject
+              |
+              ↓
+     new DataResponse(...)
+              |
+              ↓
+          JSON Response
+
+
+          
